@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mvvm example</title>
+    <script src="../index.js"></script>
+  </head>
+  <body>
+    <p>{{welcome}}. I'm {{name}}!</p>
+    <input type="text" cm-model="name"/>
+    <script>
+      var obj = {};
+
+      Object.defineProperty
+      var model = cm.createModel({
+        welcome: "Hello, world!",
+        name :"oyyd"
+      });
+
+      cm.bootstrap(document.body, model);
+
+      model.props.name = "abc";
+    </script>
+  </body>
+</html>

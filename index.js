@@ -10,31 +10,76 @@
   };
 
   //two way data binding
-  cm.Binder = function() {
+  cm.Binder = function(name, value, node) {
 
   };
 
   var Model = cm.Model = function(props) {
-    for (var name in props) {
-      this[name] = props[name];
-    }
+    this.props = {};
+    this.compiler = null;
+    this.isStart = false;
 
     if (typeof this._startBind !== 'function') {
       Model.prototype._startBind = function(compiler) {
-        for (prop in compiler.modelNodes) {
-          var node = compiler.modelNodes[prop];
+        this.compiler = compiler;
+        for (prop in this.compiler.modelNodes) {
+          var node = this.compiler.modelNodes[prop];
 
-          if (!(node.expr in this)) {
-            this[node.expr] = undefined;
+          if (!(node.expr in this.props)) {
+            this.props[node.expr] = undefined;
           }
 
-          if ((this[node.expr] === null) || (typeof this[node.expr] === 'undefined')) {
-            node.textContent = "";
+          if ((this.props[node.expr] === null) ||
+            (typeof this.props[node.expr] === 'undefined')) {
+
+            node.textContent = '';
           }
 
-          node.textContent = this[node.expr];
+          node.textContent = this.props[node.expr];
+        }
+
+        this.isStart = true;
+      };
+
+      Model.prototype._digest = function() {
+        if (!this.isStart) {
+          return;
+        }
+
+        for (prop in this.props) {
+          if (this.props[prop] !== this.props['_last' + prop]) {
+            this.props['_last' + prop] = this.props[prop];
+            for (var i in this.compiler.modelNodes) {
+              var node = this.compiler.modelNodes[i];
+              if (node.expr === prop) {
+                node.textContent = this.props[prop];
+              }
+            }
+          }
         }
       };
+
+      var _digest = this._digest.bind(this);
+    }
+
+    for (var name in props) {
+      (function(props, name, _digest) {
+        console.log(props, name);
+        Object.defineProperty(props, name, {
+          get: function() {
+            return this['_' + name];
+          },
+          set: function(newValue) {
+            this['_' + name] = newValue;
+            _digest();
+          },
+          enumerable: true,
+          configurable: true
+        });
+      })(this.props, name, _digest);
+
+      this.props[name] = props[name];
+      this.props['_last' + name] = props[name];
     }
   };
 
