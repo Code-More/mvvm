@@ -29,13 +29,24 @@
             this.props[node.expr] = undefined;
           }
 
-          if ((this.props[node.expr] === null) ||
-            (typeof this.props[node.expr] === 'undefined')) {
+          if (node instanceof TextNode) {
+            if ((this.props[node.expr] === null) ||
+              (typeof this.props[node.expr] === 'undefined')) {
 
-            node.textContent = '';
+              node.ele.value = '';
+            }
+
+            node.ele.value = this.props[node.expr];
+          } else {
+            // it's display nodes          
+            if ((this.props[node.expr] === null) ||
+              (typeof this.props[node.expr] === 'undefined')) {
+
+              node.textContent = '';
+            }
+
+            node.textContent = this.props[node.expr];
           }
-
-          node.textContent = this.props[node.expr];
         }
 
         this.isStart = true;
@@ -52,11 +63,18 @@
             for (var i in this.compiler.modelNodes) {
               var node = this.compiler.modelNodes[i];
               if (node.expr === prop) {
+                if (node instanceof TextNode) {
+                  node.ele.value = this.props[prop];
+                  continue;
+                }
+
                 node.textContent = this.props[prop];
               }
             }
           }
         }
+
+
       };
 
       var _digest = this._digest.bind(this);
@@ -83,9 +101,14 @@
     }
   };
 
-  var Node = cm.Node = function(ele, modelType) {
+  var Node = cm.Node = function(ele, modelType, expr) {
     this.ele = ele;
     this.modelType = modelType;
+    this.expr = expr;
+  };
+
+  var TextNode = function(ele, expr) {
+    Node.call(this, ele, 'TEXT_NODE', expr);
   };
 
   // iterate DOM and find models
@@ -99,7 +122,8 @@
       Compiler.prototype._compile = function(ele) {
         for (var i = 0; i < ele.childNodes.length; i++) {
           var node = ele.childNodes[i];
-          this._createModelNode(node);
+          this._checkDisplayModel(node);
+          this._checkModel(node);
           if (node.childNodes && node.childNodes.length > 0) {
             this._compile(node);
           }
@@ -114,7 +138,21 @@
 
       Compiler.prototype._isModelNode = function(node) {};
 
-      Compiler.prototype._createModelNode = function(node) {
+      Compiler.prototype._checkModel = function(node) {
+        if (node.nodeType === 3) {
+          return;
+        }
+
+        // if it's `input text`
+        if (node.nodeName === 'INPUT' && node.type === 'text' &&
+          node.attributes['cm-model']) {
+
+          this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
+          return;
+        }
+      };
+
+      Compiler.prototype._checkDisplayModel = function(node) {
         if (node.nodeType !== 3) {
           return;
         }
