@@ -24,11 +24,13 @@
         this.compiler = compiler;
         for (prop in this.compiler.modelNodes) {
           var node = this.compiler.modelNodes[prop];
+          var model = this;
 
           if (!(node.expr in this.props)) {
             this.props[node.expr] = undefined;
           }
 
+          // if node is a input text
           if (node instanceof TextNode) {
             if ((this.props[node.expr] === null) ||
               (typeof this.props[node.expr] === 'undefined')) {
@@ -37,6 +39,10 @@
             }
 
             node.ele.value = this.props[node.expr];
+
+            node.ele.onchange = function() {
+              model.props[node.expr] = this.value;
+            };
           } else {
             // it's display nodes          
             if ((this.props[node.expr] === null) ||
