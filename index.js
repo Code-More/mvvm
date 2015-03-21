@@ -28,6 +28,7 @@
 
           if (!(node.expr in this.props)) {
             this.props[node.expr] = undefined;
+            this.addProp(node.expr, null);
           }
 
           // if node is a input text
@@ -36,12 +37,12 @@
               (typeof this.props[node.expr] === 'undefined')) {
 
               node.ele.value = '';
+            } else {
+              node.ele.value = this.props[node.expr];
             }
 
-            node.ele.value = this.props[node.expr];
-
             node.ele.onchange = function() {
-              model.props[node.expr] = this.value;
+              model.props[this.cmNode.expr] = this.value;
             };
           } else {
             // it's display nodes          
@@ -59,6 +60,8 @@
       };
 
       Model.prototype._digest = function() {
+        console.log('digest');
+
         if (!this.isStart) {
           return;
         }
@@ -79,17 +82,12 @@
             }
           }
         }
-
-
       };
 
       var _digest = this._digest.bind(this);
-    }
 
-    for (var name in props) {
-      (function(props, name, _digest) {
-        console.log(props, name);
-        Object.defineProperty(props, name, {
+      Model.prototype.addProp = function(name, value) {
+        Object.defineProperty(this.props, name, {
           get: function() {
             return this['_' + name];
           },
@@ -100,15 +98,20 @@
           enumerable: true,
           configurable: true
         });
-      })(this.props, name, _digest);
 
-      this.props[name] = props[name];
-      this.props['_last' + name] = props[name];
+        this.props[name] = value;
+        this.props['_last' + name] = value;
+      };
+    }
+
+    for (var name in props) {
+      this.addProp(name, props[name]);
     }
   };
 
   var Node = cm.Node = function(ele, modelType, expr) {
     this.ele = ele;
+    this.ele.cmNode = this;
     this.modelType = modelType;
     this.expr = expr;
   };
@@ -153,6 +156,12 @@
         if (node.nodeName === 'INPUT' && node.type === 'text' &&
           node.attributes['cm-model']) {
 
+          this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
+          return;
+        }
+
+        // if it's textarea
+        if (node.nodeName === 'TEXTAREA' && node.attributes['cm-model']) {
           this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
           return;
         }
