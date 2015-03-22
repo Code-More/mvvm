@@ -1,218 +1,207 @@
-(function(s) {
-  var cm = s.cm = {};
+(function(s){var cm = s.cm = {};
 
-  cm.options = {
-    syntax: {
-      bindSyntaxLeft: "{{",
-      bindSyntaxRight: "}}",
-      bindSyntaxRegexp: /\{{2}\s*([a-zA-Z0-9_]*)\s*\}{2}/g
-    }
-  };
+cm.options = {
+  syntax: {
+    bindSyntaxLeft: "{{",
+    bindSyntaxRight: "}}",
+    bindSyntaxRegexp: /\{{2}\s*([a-zA-Z0-9_]*)\s*\}{2}/g
+  }
+};
 
-  //two way data binding
-  cm.Binder = function(name, value, node) {
+cm.bootstrap = function(ele, model) {
+  var compiler = new Compiler(ele);
 
-  };
+  console.log(compiler.modelNodes);
+  window.list = compiler.modelNodes;
 
-  var Model = cm.Model = function(props) {
-    this.props = {};
-    this.compiler = null;
-    this.isStart = false;
+  model._startBind(compiler);
+};
 
-    if (typeof this._startBind !== 'function') {
-      Model.prototype._startBind = function(compiler) {
-        this.compiler = compiler;
-        for (prop in this.compiler.modelNodes) {
-          var node = this.compiler.modelNodes[prop];
-          var model = this;
+cm.createModel = function(props) {
+  return new Model(props);
+};//two way data binding
+cm.Binder = function(name, value, node) {
 
-          if (!(node.expr in this.props)) {
-            this.props[node.expr] = undefined;
-            this.addProp(node.expr, null);
-          }
+};var Model = cm.Model = function(props) {
+  this.props = {};
+  this.compiler = null;
+  this.isStart = false;
 
-          // if node is a input text
-          if (node instanceof TextNode) {
-            if ((this.props[node.expr] === null) ||
-              (typeof this.props[node.expr] === 'undefined')) {
+  if (typeof this._startBind !== 'function') {
+    Model.prototype._startBind = function(compiler) {
+      this.compiler = compiler;
+      for (prop in this.compiler.modelNodes) {
+        var node = this.compiler.modelNodes[prop];
+        var model = this;
 
-              node.ele.value = '';
-            } else {
-              node.ele.value = this.props[node.expr];
-            }
+        if (!(node.expr in this.props)) {
+          this.props[node.expr] = undefined;
+          this.addProp(node.expr, null);
+        }
 
-            node.ele.onchange = function() {
-              model.props[this.cmNode.expr] = this.value;
-            };
+        // if node is a input text
+        if (node instanceof TextNode) {
+          if ((this.props[node.expr] === null) ||
+            (typeof this.props[node.expr] === 'undefined')) {
+
+            node.ele.value = '';
           } else {
-            // it's display nodes          
-            if ((this.props[node.expr] === null) ||
-              (typeof this.props[node.expr] === 'undefined')) {
-
-              node.textContent = '';
-            }
-
-            node.textContent = this.props[node.expr];
+            node.ele.value = this.props[node.expr];
           }
+
+          node.ele.onchange = function() {
+            model.props[this.cmNode.expr] = this.value;
+          };
+        } else {
+          // it's display nodes          
+          if ((this.props[node.expr] === null) ||
+            (typeof this.props[node.expr] === 'undefined')) {
+
+            node.textContent = '';
+          }
+
+          node.textContent = this.props[node.expr];
         }
+      }
 
-        this.isStart = true;
-      };
+      this.isStart = true;
+    };
 
-      Model.prototype._digest = function() {
-        console.log('digest');
+    Model.prototype._digest = function() {
+      console.log('digest');
 
-        if (!this.isStart) {
-          return;
-        }
+      if (!this.isStart) {
+        return;
+      }
 
-        for (prop in this.props) {
-          if (this.props[prop] !== this.props['_last' + prop]) {
-            this.props['_last' + prop] = this.props[prop];
-            for (var i in this.compiler.modelNodes) {
-              var node = this.compiler.modelNodes[i];
-              if (node.expr === prop) {
-                if (node instanceof TextNode) {
-                  node.ele.value = this.props[prop];
-                  continue;
-                }
-
-                node.textContent = this.props[prop];
+      for (prop in this.props) {
+        if (this.props[prop] !== this.props['_last' + prop]) {
+          this.props['_last' + prop] = this.props[prop];
+          for (var i in this.compiler.modelNodes) {
+            var node = this.compiler.modelNodes[i];
+            if (node.expr === prop) {
+              if (node instanceof TextNode) {
+                node.ele.value = this.props[prop];
+                continue;
               }
+
+              node.textContent = this.props[prop];
             }
           }
         }
-      };
+      }
+    };
 
-      var _digest = this._digest.bind(this);
+    var _digest = this._digest.bind(this);
 
-      Model.prototype.addProp = function(name, value) {
-        Object.defineProperty(this.props, name, {
-          get: function() {
-            return this['_' + name];
-          },
-          set: function(newValue) {
-            this['_' + name] = newValue;
-            _digest();
-          },
-          enumerable: true,
-          configurable: true
-        });
+    Model.prototype.addProp = function(name, value) {
+      Object.defineProperty(this.props, name, {
+        get: function() {
+          return this['_' + name];
+        },
+        set: function(newValue) {
+          this['_' + name] = newValue;
+          _digest();
+        },
+        enumerable: true,
+        configurable: true
+      });
 
-        this.props[name] = value;
-        this.props['_last' + name] = value;
-      };
-    }
+      this.props[name] = value;
+      this.props['_last' + name] = value;
+    };
+  }
 
-    for (var name in props) {
-      this.addProp(name, props[name]);
-    }
-  };
+  for (var name in props) {
+    this.addProp(name, props[name]);
+  }
+};var Node = cm.Node = function(ele, modelType, expr) {
+  this.ele = ele;
+  this.ele.cmNode = this;
+  this.modelType = modelType;
+  this.expr = expr;
+};
 
-  var Node = cm.Node = function(ele, modelType, expr) {
-    this.ele = ele;
-    this.ele.cmNode = this;
-    this.modelType = modelType;
-    this.expr = expr;
-  };
+var TextNode = function(ele, expr) {
+  Node.call(this, ele, 'TEXT_NODE', expr);
+};// iterate DOM and find models
+var Compiler = cm.Compiler = function(ele) {
+  // properties
+  this.ele = ele;
+  this.modelNodes = [];
 
-  var TextNode = function(ele, expr) {
-    Node.call(this, ele, 'TEXT_NODE', expr);
-  };
-
-  // iterate DOM and find models
-  var Compiler = cm.Compiler = function(ele) {
-    // properties
-    this.ele = ele;
-    this.modelNodes = [];
-
-    // methods
-    if (typeof this.compileHTML !== 'function') {
-      Compiler.prototype._compile = function(ele) {
-        for (var i = 0; i < ele.childNodes.length; i++) {
-          var node = ele.childNodes[i];
-          this._checkDisplayModel(node);
-          this._checkModel(node);
-          if (node.childNodes && node.childNodes.length > 0) {
-            this._compile(node);
-          }
+  // methods
+  if (typeof this.compileHTML !== 'function') {
+    Compiler.prototype._compile = function(ele) {
+      for (var i = 0; i < ele.childNodes.length; i++) {
+        var node = ele.childNodes[i];
+        this._checkDisplayModel(node);
+        this._checkModel(node);
+        if (node.childNodes && node.childNodes.length > 0) {
+          this._compile(node);
         }
-      };
+      }
+    };
 
-      Compiler.prototype.compileHTML = function() {
-        this._compile(this.ele);
+    Compiler.prototype.compileHTML = function() {
+      this._compile(this.ele);
 
-        return this.modelNodes;
-      };
+      return this.modelNodes;
+    };
 
-      Compiler.prototype._isModelNode = function(node) {};
+    Compiler.prototype._isModelNode = function(node) {};
 
-      Compiler.prototype._checkModel = function(node) {
-        if (node.nodeType === 3) {
-          return;
-        }
+    Compiler.prototype._checkModel = function(node) {
+      if (node.nodeType === 3) {
+        return;
+      }
 
-        // if it's `input text`
-        if (node.nodeName === 'INPUT' && node.type === 'text' &&
-          node.attributes['cm-model']) {
+      // if it's `input text`
+      if (node.nodeName === 'INPUT' && node.type === 'text' &&
+        node.attributes['cm-model']) {
 
-          this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
-          return;
-        }
+        this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
+        return;
+      }
 
-        // if it's textarea
-        if (node.nodeName === 'TEXTAREA' && node.attributes['cm-model']) {
-          this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
-          return;
-        }
-      };
+      // if it's textarea
+      if (node.nodeName === 'TEXTAREA' && node.attributes['cm-model']) {
+        this.modelNodes.push(new TextNode(node, node.attributes['cm-model'].value));
+        return;
+      }
+    };
 
-      Compiler.prototype._checkDisplayModel = function(node) {
-        if (node.nodeType !== 3) {
-          return;
-        }
+    Compiler.prototype._checkDisplayModel = function(node) {
+      if (node.nodeType !== 3) {
+        return;
+      }
 
-        var regRes = null,
-          preNode = null,
-          nextNode = null,
-          modelNode = null,
-          reg = cm.options.syntax.bindSyntaxRegexp;
+      var regRes = null,
+        preNode = null,
+        nextNode = null,
+        modelNode = null,
+        reg = cm.options.syntax.bindSyntaxRegexp;
 
-        while (regRes = reg.exec(node.textContent)) {
-          var start = reg.lastIndex - regRes[0].length;
+      while (regRes = reg.exec(node.textContent)) {
+        var start = reg.lastIndex - regRes[0].length;
 
-          modelNode = document.createTextNode("");
-          modelNode.expr = regRes[1];
-          preNode = document.createTextNode(node.textContent.substr(0, start));
-          nextNode = document.createTextNode(node.textContent.substr(reg.lastIndex));
+        modelNode = document.createTextNode("");
+        modelNode.expr = regRes[1];
+        preNode = document.createTextNode(node.textContent.substr(0, start));
+        nextNode = document.createTextNode(node.textContent.substr(reg.lastIndex));
 
-          var parent = node.parentNode;
-          parent.insertBefore(preNode, node);
-          parent.insertBefore(modelNode, node);
-          parent.insertBefore(nextNode, node);
+        var parent = node.parentNode;
+        parent.insertBefore(preNode, node);
+        parent.insertBefore(modelNode, node);
+        parent.insertBefore(nextNode, node);
 
-          this.modelNodes.push(modelNode);
-          parent.removeChild(node);
-          return;
-        }
-      };
-    }
+        this.modelNodes.push(modelNode);
+        parent.removeChild(node);
+        return;
+      }
+    };
+  }
 
-    // initialization
-    this.compileHTML();
-  };
-
-  cm.bootstrap = function(ele, model) {
-    var compiler = new Compiler(ele);
-
-    console.log(compiler.modelNodes);
-    window.list = compiler.modelNodes;
-
-    model._startBind(compiler);
-  };
-
-  cm.createModel = function(props) {
-    return new Model(props);
-  };
-
-})(window);
+  // initialization
+  this.compileHTML();
+};})(window);
