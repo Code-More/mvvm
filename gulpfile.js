@@ -1,10 +1,13 @@
 var gulp = require('gulp'),
-  fs = require('fs');
+  fs = require('fs'),
+  uglify = require('gulp-uglify'),
+  concatDest = 'index.js',
+  minifyDest = 'dest';
 
 gulp.task('concat', function() {
   var files = ['global.js', 'Binder.js', 'Model.js', 'Node.js', 'Compiler.js'],
-    filePrefix = './src/',
-    dest = 'index.js';
+    filePrefix = './src/';
+
   var result = '(function(s){';
 
   for (i in files) {
@@ -13,7 +16,13 @@ gulp.task('concat', function() {
 
   result += '})(window);';
 
-  fs.writeFileSync(dest, result);
-
-  console.log('Files concation finished.');
+  fs.writeFileSync(concatDest, result);
 });
+
+gulp.task('uglify', function() {
+  gulp.src(concatDest)
+    .pipe(uglify())
+    .pipe(gulp.dest(minifyDest));
+});
+
+gulp.task('build', ['concat', 'uglify']);

@@ -22,6 +22,7 @@
   "homepage": "https://github.com/Code-More/mvvm",
   "devDependencies": {
     "gulp": "^3.8.11",
+    "gulp-uglify": "^1.1.0",
     "karma": "^0.12.31",
     "karma-phantomjs-launcher": "^0.1.4"
   }
