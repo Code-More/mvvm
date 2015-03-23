@@ -6,6 +6,11 @@ var Compiler = cm.Compiler = function(ele) {
 
   // methods
   if (typeof this.compileHTML !== 'function') {
+    Compiler.prototype._destroy = function() {
+      this.ele = null;
+      this.modelNodes = null;
+    };
+
     Compiler.prototype._compile = function(ele) {
       for (var i = 0; i < ele.childNodes.length; i++) {
         var node = ele.childNodes[i];

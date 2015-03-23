@@ -28,6 +28,10 @@ cm.Binder = function(name, value, node) {
   this.isStart = false;
 
   if (typeof this._startBind !== 'function') {
+    Model.prototype._destroy = function() {
+      this.props = null;
+      this.isStart = false;
+    };
     Model.prototype._startBind = function(compiler) {
       this.compiler = compiler;
       for (prop in this.compiler.modelNodes) {
@@ -49,7 +53,7 @@ cm.Binder = function(name, value, node) {
             node.ele.value = this.props[node.expr];
           }
 
-          node.ele.onchange = function() {
+          node.ele.onkeyup = function() {
             model.props[this.cmNode.expr] = this.value;
           };
         } else {
@@ -132,6 +136,11 @@ var Compiler = cm.Compiler = function(ele) {
 
   // methods
   if (typeof this.compileHTML !== 'function') {
+    Compiler.prototype._destroy = function() {
+      this.ele = null;
+      this.modelNodes = null;
+    };
+
     Compiler.prototype._compile = function(ele) {
       for (var i = 0; i < ele.childNodes.length; i++) {
         var node = ele.childNodes[i];

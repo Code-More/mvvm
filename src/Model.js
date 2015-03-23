@@ -4,6 +4,10 @@ var Model = cm.Model = function(props) {
   this.isStart = false;
 
   if (typeof this._startBind !== 'function') {
+    Model.prototype._destroy = function() {
+      this.props = null;
+      this.isStart = false;
+    };
     Model.prototype._startBind = function(compiler) {
       this.compiler = compiler;
       for (prop in this.compiler.modelNodes) {
@@ -25,7 +29,7 @@ var Model = cm.Model = function(props) {
             node.ele.value = this.props[node.expr];
           }
 
-          node.ele.onchange = function() {
+          node.ele.onkeyup = function() {
             model.props[this.cmNode.expr] = this.value;
           };
         } else {
