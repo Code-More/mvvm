@@ -128,7 +128,7 @@ cm.Binder = function(name, value, node) {
 
 var TextNode = function(ele, expr) {
   Node.call(this, ele, 'TEXT_NODE', expr);
-};// iterate DOM and find models
+};// iterate DOM and find model nodes
 var Compiler = cm.Compiler = function(ele) {
   // properties
   this.ele = ele;

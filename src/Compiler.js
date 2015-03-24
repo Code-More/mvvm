@@ -1,4 +1,4 @@
-// iterate DOM and find models
+// iterate DOM and find model nodes
 var Compiler = cm.Compiler = function(ele) {
   // properties
   this.ele = ele;

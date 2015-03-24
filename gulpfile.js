@@ -25,4 +25,8 @@ gulp.task('uglify', function() {
     .pipe(gulp.dest(minifyDest));
 });
 
+gulp.task('watch', function() {
+  gulp.watch('./src/**/*.js', ['build']);
+});
+
 gulp.task('build', ['concat', 'uglify']);
