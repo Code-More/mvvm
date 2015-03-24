@@ -32,6 +32,7 @@ cm.Binder = function(name, value, node) {
       this.props = null;
       this.isStart = false;
     };
+
     Model.prototype._startBind = function(compiler) {
       this.compiler = compiler;
       for (prop in this.compiler.modelNodes) {
@@ -53,6 +54,8 @@ cm.Binder = function(name, value, node) {
             node.ele.value = this.props[node.expr];
           }
 
+          // TODO: this will erase all exist functions which may be
+          // not what we want.
           node.ele.onkeyup = function() {
             model.props[this.cmNode.expr] = this.value;
           };
