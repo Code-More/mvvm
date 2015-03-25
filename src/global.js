@@ -11,9 +11,6 @@ cm.options = {
 cm.bootstrap = function(ele, model) {
   var compiler = new Compiler(ele);
 
-  console.log(compiler.modelNodes);
-  window.list = compiler.modelNodes;
-
   model._startBind(compiler);
 };
 

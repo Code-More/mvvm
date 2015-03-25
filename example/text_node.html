@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mvvm example</title>
+    <script src="../index.js"></script>
+  </head>
+  <body>    
+    <script>
+    var model = cm.createModel({
+      'test': '123'
+    });
+    var textNode = document.createTextNode('{{test}}');
+
+    document.body.appendChild(textNode);
+
+    cm.bootstrap(textNode, model);
+    </script>
+  </body>
+</html>

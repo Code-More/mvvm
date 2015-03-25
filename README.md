@@ -1,5 +1,4 @@
 #mvvm
----
 
 A simplest js mvvm framework.
 

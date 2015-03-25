@@ -11,9 +11,6 @@ cm.options = {
 cm.bootstrap = function(ele, model) {
   var compiler = new Compiler(ele);
 
-  console.log(compiler.modelNodes);
-  window.list = compiler.modelNodes;
-
   model._startBind(compiler);
 };
 
@@ -57,6 +54,7 @@ cm.Binder = function(name, value, node) {
           // TODO: this will erase all exist functions which may be
           // not what we want.
           node.ele.onkeyup = function() {
+            console.log('keyup');
             model.props[this.cmNode.expr] = this.value;
           };
         } else {
@@ -75,8 +73,6 @@ cm.Binder = function(name, value, node) {
     };
 
     Model.prototype._digest = function() {
-      console.log('digest');
-
       if (!this.isStart) {
         return;
       }
@@ -99,16 +95,15 @@ cm.Binder = function(name, value, node) {
       }
     };
 
-    var _digest = this._digest.bind(this);
-
     Model.prototype.addProp = function(name, value) {
+      var that = this;
       Object.defineProperty(this.props, name, {
         get: function() {
           return this['_' + name];
         },
         set: function(newValue) {
           this['_' + name] = newValue;
-          _digest();
+          that._digest();
         },
         enumerable: true,
         configurable: true
@@ -145,13 +140,11 @@ var Compiler = cm.Compiler = function(ele) {
     };
 
     Compiler.prototype._compile = function(ele) {
+      this._checkDisplayModel(ele);
+      this._checkModel(ele);
       for (var i = 0; i < ele.childNodes.length; i++) {
         var node = ele.childNodes[i];
-        this._checkDisplayModel(node);
-        this._checkModel(node);
-        if (node.childNodes && node.childNodes.length > 0) {
-          this._compile(node);
-        }
+        this._compile(node);
       }
     };
 

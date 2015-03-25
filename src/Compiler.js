@@ -12,13 +12,11 @@ var Compiler = cm.Compiler = function(ele) {
     };
 
     Compiler.prototype._compile = function(ele) {
+      this._checkDisplayModel(ele);
+      this._checkModel(ele);
       for (var i = 0; i < ele.childNodes.length; i++) {
         var node = ele.childNodes[i];
-        this._checkDisplayModel(node);
-        this._checkModel(node);
-        if (node.childNodes && node.childNodes.length > 0) {
-          this._compile(node);
-        }
+        this._compile(node);
       }
     };
 

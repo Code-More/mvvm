@@ -33,6 +33,7 @@ var Model = cm.Model = function(props) {
           // TODO: this will erase all exist functions which may be
           // not what we want.
           node.ele.onkeyup = function() {
+            console.log('keyup');
             model.props[this.cmNode.expr] = this.value;
           };
         } else {
@@ -51,8 +52,6 @@ var Model = cm.Model = function(props) {
     };
 
     Model.prototype._digest = function() {
-      console.log('digest');
-
       if (!this.isStart) {
         return;
       }
@@ -75,16 +74,15 @@ var Model = cm.Model = function(props) {
       }
     };
 
-    var _digest = this._digest.bind(this);
-
     Model.prototype.addProp = function(name, value) {
+      var that = this;
       Object.defineProperty(this.props, name, {
         get: function() {
           return this['_' + name];
         },
         set: function(newValue) {
           this['_' + name] = newValue;
-          _digest();
+          that._digest();
         },
         enumerable: true,
         configurable: true
